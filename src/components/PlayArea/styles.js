@@ -1,14 +1,11 @@
 import styled from "styled-components";
 
 export const AreaWrapper = styled.div`
-  border: 1px solid red;
-  ${"" /* display: flex; */}
-
-  ${"" /* align-items: center; */}
+  display: inline-block;
+  margin-top: 1rem;
 `;
 
 export const Row = styled.div`
-  border: 1px solid green;
   display: flex;
   justify-content: center;
 `;
@@ -20,4 +17,5 @@ export const Cell = styled.div`
   display: flex;
   justify-content: center;
   align-items: center;
+  background: ${(props) => (props.showEmpty ? "grey" : "#fff")};
 `;

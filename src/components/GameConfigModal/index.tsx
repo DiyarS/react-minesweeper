@@ -8,12 +8,13 @@ const ROWS_COLUMNS_COUNTS = [10, 20, 30, 40];
 const MINES_COUNTS = [30, 60, 90];
 
 interface IProps {
+  isConfigDefault: boolean;
   onSubmit: (values: IGameConfig) => void;
 }
 
 const formFieldValidation = [{ required: true, message: "Required" }];
 
-const GameConfigModal: React.FC<IProps> = ({ onSubmit }) => {
+const GameConfigModal: React.FC<IProps> = ({ isConfigDefault, onSubmit }) => {
   const [showModalOnStart, setShowModalOnStart] = useState(false);
 
   const [rowsCount, setRowsCount] = useState(0);
@@ -21,8 +22,8 @@ const GameConfigModal: React.FC<IProps> = ({ onSubmit }) => {
   const [minesCount, setMinesCount] = useState(0);
 
   useEffect(() => {
-    // setShowModalOnStart(true);
-  }, []);
+    // isConfigDefault && setShowModalOnStart(true);
+  }, [isConfigDefault]);
 
   function renderOptions(optionsArr: Array<number>) {
     return (
@@ -54,6 +55,9 @@ const GameConfigModal: React.FC<IProps> = ({ onSubmit }) => {
       visible={showModalOnStart}
       onOk={onSubmitSettings}
       onCancel={() => setShowModalOnStart(false)}
+      okButtonProps={{ disabled: !rowsCount || !columnsCount || !minesCount }}
+      okText="Start"
+      maskClosable={false}
     >
       <FormWrapper>
         <Form onValuesChange={onFormValuesChange}>

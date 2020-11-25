@@ -1,17 +1,21 @@
 import React, { useState, useEffect, useRef } from "react";
 import isEqual from "lodash.isequal";
+import { Card } from "antd";
 import Header from "../Header";
 import GameConfigModal from "../GameConfigModal";
 import { IGameConfig } from "../../interfaces";
 import "./App.css";
 import PlayArea from "../PlayArea";
 
+const defaultConfig = {
+  rowsCount: 10,
+  columnsCount: 10,
+  minesCount: 10,
+};
+
 function App() {
-  const [gameConfig, setGameConfig] = useState<IGameConfig>({
-    rowsCount: 5,
-    columnsCount: 5,
-    minesCount: 10,
-  });
+  const [isGameOver, setGameOver] = useState(false);
+  const [gameConfig, setGameConfig] = useState<IGameConfig>(defaultConfig);
   const prevGameConfig = useRef<IGameConfig>();
 
   useEffect(() => {
@@ -24,18 +28,33 @@ function App() {
   });
 
   useEffect(() => {
+    if (isGameOver) setGameConfig(defaultConfig);
+  }, [isGameOver]);
+
+  useEffect(() => {
     prevGameConfig.current = gameConfig;
   });
 
   function resetGame() {
-    console.log("Reset called");
+    setGameOver(false);
   }
+
+  const isConfigDefault = isEqual(gameConfig, defaultConfig);
 
   return (
     <div className="App">
-      <Header reset={resetGame} />
-      <PlayArea config={gameConfig} />
-      <GameConfigModal onSubmit={setGameConfig} />
+      <Card className="App-inner-container">
+        <Header isGameOver={isGameOver} reset={resetGame} />
+        <PlayArea
+          isGameOver={isGameOver}
+          setGameOver={setGameOver}
+          config={gameConfig}
+        />
+        <GameConfigModal
+          isConfigDefault={isConfigDefault}
+          onSubmit={setGameConfig}
+        />
+      </Card>
     </div>
   );
 }
