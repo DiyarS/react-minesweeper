@@ -1,9 +1,8 @@
 import React, { useEffect, useState, useRef } from "react";
-import isEqual from "lodash.isequal";
 import { IGameConfig } from "../../interfaces";
 import MineIcon from "./MineIcon";
 import FlagIcon from "./FlagIcon";
-import { AreaWrapper, Row, Cell } from "./styles";
+import { AreaWrapper, Row, CellWrapper } from "./styles";
 import { MineTypes } from "./MineIcon";
 import { uuid } from "../../utils";
 
@@ -11,6 +10,9 @@ interface IProps {
   config: IGameConfig;
   isGameOver: boolean;
   setGameOver: (isGameOver: boolean) => void;
+  _setFlagsCount: (count: number) => void;
+  setShowCongratz: (isWon: boolean) => void;
+  flagsCount: number;
 }
 
 type Coordinate = {
@@ -34,42 +36,38 @@ function getRandomArbitrary(min: number, max: number) {
   return Math.round(Math.random() * (max - min) + min);
 }
 
-const PlayArea: React.FC<IProps> = ({ config, isGameOver, setGameOver }) => {
+const PlayArea: React.FC<IProps> = ({
+  config,
+  isGameOver,
+  setGameOver,
+  flagsCount,
+  _setFlagsCount,
+  setShowCongratz,
+}) => {
   const { rowsCount, columnsCount, minesCount } = config;
-  const [allCoordinates, setAllCoordinates] = useState<CoordinatesDict>({});
+  const [allCoordinates, _setAllCoordinates] = useState<CoordinatesDict>({});
   const prevAllCoordinates = useRef<CoordinatesDict>();
+  const currAllCoordinates = useRef<CoordinatesDict>(allCoordinates); // for event listener not capturing actual state
+  const currFlagsCount = useRef(flagsCount); // for event listener not capturing actual state
   const prevIsGameOver = useRef<boolean>();
 
+  /* eslint-disable react-hooks/exhaustive-deps */
   useEffect(() => {
-    rowsCount && columnsCount && minesCount && setupMines();
-    /* eslint-disable react-hooks/exhaustive-deps */
+    rowsCount && columnsCount && minesCount && startRound();
   }, [rowsCount, columnsCount, minesCount]);
 
   useEffect(() => {
-    if (
-      !isEqual(prevAllCoordinates.current, allCoordinates) &&
-      Object.keys(allCoordinates).length
-    ) {
-      calcNeighbourMines();
-      document.addEventListener("contextmenu", handleCellFlag);
-    }
+    calcFlaggedCells();
   }, [allCoordinates]);
 
   useEffect(() => {
-    if (isGameOver) {
-      const coordinates = Object.assign({}, allCoordinates);
+    if (flagsCount === 0 && Object.keys(allCoordinates).length) checkIfWon();
+  }, [flagsCount]);
 
-      for (let key in coordinates) {
-        if (coordinates[key].type === CellTypes.Mine)
-          coordinates[key].show = true;
-      }
+  useEffect(() => {
+    if (isGameOver) revealAllMines();
 
-      setAllCoordinates(coordinates);
-    }
-
-    if (!isGameOver && prevIsGameOver.current) {
-      setupMines();
-    }
+    if (!isGameOver && prevIsGameOver.current) startRound();
   }, [isGameOver]);
 
   useEffect(() => {
@@ -77,49 +75,112 @@ const PlayArea: React.FC<IProps> = ({ config, isGameOver, setGameOver }) => {
     prevIsGameOver.current = isGameOver;
   });
 
-  function handleCellFlag(event: MouseEvent) {
-    event.preventDefault();
+  useEffect(() => {
+    document.addEventListener("contextmenu", (e) => handleCellFlag(e));
+  }, []);
 
-    const target = event.target as HTMLElement;
-    const cellKey = target!.getAttribute("data-coord");
+  function setAllCoordinates(coordinates: CoordinatesDict) {
+    currAllCoordinates.current = coordinates;
+    _setAllCoordinates(coordinates);
+  }
+
+  function setFlagsCount(count: number) {
+    currFlagsCount.current = count;
+    _setFlagsCount(count);
+  }
+
+  function checkIfWon() {
+    let isWon = true;
+
+    for (const key in allCoordinates) {
+      const cell = allCoordinates[key];
+
+      if (!cell.show || (cell.type === CellTypes.Mine && !cell.flagged)) {
+        isWon = false;
+        break;
+      }
+    }
+    if (isWon) setShowCongratz(true);
+  }
+
+  function revealAllMines() {
     const coordinates = Object.assign({}, allCoordinates);
 
-    if (cellKey && coordinates[cellKey]) {
-      const cell = coordinates[cellKey];
-
-      cell.flagged = true;
-      cell.show = true;
-
-      setAllCoordinates(coordinates);
-    }
-  }
-
-  function parseCoordToKey(coordinate: Coordinate): string {
-    return `${coordinate.x}-${coordinate.y}`;
-  }
-
-  function setupMines() {
-    const minesCoordinates: CoordinatesDict = generateMinesCoordinates();
-    const coordinates: CoordinatesDict = {};
-
-    for (let c = 0; c < columnsCount; c++) {
-      for (let r = 0; r < rowsCount; r++) {
-        const coordinate: Coordinate = { x: c, y: r, type: CellTypes.Empty };
-        const coordinateAsKey = parseCoordToKey(coordinate);
-        if (minesCoordinates[coordinateAsKey]) {
-          coordinate.type = CellTypes.Mine;
-        }
-
-        coordinates[coordinateAsKey] = coordinate;
-      }
+    for (let key in coordinates) {
+      if (coordinates[key].type === CellTypes.Mine)
+        coordinates[key].show = true;
     }
 
     setAllCoordinates(coordinates);
   }
 
-  function calcNeighbourMines() {
-    const coordinates = Object.assign({}, allCoordinates);
+  function calcFlaggedCells() {
+    let flaggedCellsNumber = 0;
 
+    for (const key in allCoordinates) {
+      if (allCoordinates[key].flagged) flaggedCellsNumber++;
+    }
+
+    setFlagsCount(config.minesCount - flaggedCellsNumber);
+  }
+
+  const handleCellFlag = (event: MouseEvent) => {
+    event.preventDefault();
+
+    const target = event.target as HTMLElement;
+    const cellKey = target!.getAttribute("data-coord");
+    const coordinates = Object.assign({}, currAllCoordinates.current);
+
+    if (cellKey && coordinates[cellKey]) {
+      const cell = coordinates[cellKey];
+
+      if (cell.flagged) {
+        cell.flagged = !cell.flagged;
+        cell.show = !!!cell.show;
+      } else {
+        if (currFlagsCount.current > 0) {
+          cell.flagged = !!!cell.flagged;
+          cell.show = !!!cell.show;
+        }
+      }
+
+      setAllCoordinates(coordinates);
+    }
+  };
+
+  function parseCoordToKey(coordinate: Coordinate): string {
+    return `${coordinate.x}-${coordinate.y}`;
+  }
+
+  function startRound() {
+    const coordinates: CoordinatesDict = {};
+
+    setupMines(coordinates);
+    calcNeighbourMines(coordinates);
+
+    setAllCoordinates(coordinates);
+  }
+
+  function setupMines(coordinates: CoordinatesDict) {
+    const minesCoordinates: CoordinatesDict = generateMinesCoordinates();
+
+    for (let c = 0; c < columnsCount; c++) {
+      for (let r = 0; r < rowsCount; r++) {
+        const coordinate: Coordinate = {
+          x: c,
+          y: r,
+          type: CellTypes.Empty,
+          flagged: false,
+        };
+        const coordinateAsKey = parseCoordToKey(coordinate);
+        if (minesCoordinates[coordinateAsKey]) coordinate.type = CellTypes.Mine;
+
+        coordinates[coordinateAsKey] = coordinate;
+      }
+    }
+  }
+
+  function calcNeighbourMines(coordinates: CoordinatesDict) {
     for (const coordKey in coordinates) {
       const centralCoord: Coordinate = coordinates[coordKey];
       if (centralCoord.type !== CellTypes.Mine) {
@@ -130,9 +191,8 @@ const PlayArea: React.FC<IProps> = ({ config, isGameOver, setGameOver }) => {
             const coordAsKey: string = parseCoordToKey({ x, y });
             const neighbourCoord: Coordinate = coordinates[coordAsKey];
 
-            if (neighbourCoord && neighbourCoord.type === CellTypes.Mine) {
+            if (neighbourCoord && neighbourCoord.type === CellTypes.Mine)
               neighbourMinesCount++;
-            }
           }
         }
 
@@ -142,8 +202,6 @@ const PlayArea: React.FC<IProps> = ({ config, isGameOver, setGameOver }) => {
         }
       }
     }
-
-    setAllCoordinates(coordinates);
   }
 
   function handleCellClick(cell: Coordinate) {
@@ -201,8 +259,8 @@ const PlayArea: React.FC<IProps> = ({ config, isGameOver, setGameOver }) => {
     const coordinates: CoordinatesDict = {};
 
     const getRandomCoord = () => ({
-      x: getRandomArbitrary(0, columnsCount),
-      y: getRandomArbitrary(0, rowsCount),
+      x: getRandomArbitrary(0, columnsCount - 1),
+      y: getRandomArbitrary(0, rowsCount - 1),
     });
 
     for (let i = 0; i < minesCount; i++) {
@@ -224,7 +282,7 @@ const PlayArea: React.FC<IProps> = ({ config, isGameOver, setGameOver }) => {
     if (isGameOver && cell.type === CellTypes.Mine)
       return <MineIcon type={MineTypes.unarmed} />;
 
-    return <FlagIcon />;
+    return <FlagIcon dataCoord={parseCoordToKey(cell)} />;
   }
 
   function renderCellBasedOnType(cell: Coordinate) {
@@ -266,16 +324,16 @@ const PlayArea: React.FC<IProps> = ({ config, isGameOver, setGameOver }) => {
 
               const coordAsKey = parseCoordToKey(cell);
               return (
-                <div>
-                  <Cell
-                    key={coordAsKey}
-                    onClick={() => cellClickHandler(cell)}
-                    data-coord={coordAsKey}
-                    showEmpty={cell.show && cell.type === CellTypes.Empty}
-                  >
-                    {renderCell(cell)}
-                  </Cell>
-                </div>
+                <CellWrapper
+                  key={coordAsKey}
+                  onClick={() => cellClickHandler(cell)}
+                  data-coord={coordAsKey}
+                  showEmpty={
+                    cell.show && !cell.flagged && cell.type === CellTypes.Empty
+                  }
+                >
+                  {renderCell(cell)}
+                </CellWrapper>
               );
             })}
           </Row>

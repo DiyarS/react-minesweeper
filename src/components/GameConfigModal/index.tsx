@@ -22,7 +22,7 @@ const GameConfigModal: React.FC<IProps> = ({ isConfigDefault, onSubmit }) => {
   const [minesCount, setMinesCount] = useState(0);
 
   useEffect(() => {
-    // isConfigDefault && setShowModalOnStart(true);
+    isConfigDefault && setShowModalOnStart(true);
   }, [isConfigDefault]);
 
   function renderOptions(optionsArr: Array<number>) {

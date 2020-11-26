@@ -10,12 +10,12 @@ export const Row = styled.div`
   justify-content: center;
 `;
 
-export const Cell = styled.div`
+export const CellWrapper = styled.div`
   border: 1px solid;
   width: 3rem;
   height: 3rem;
   display: flex;
   justify-content: center;
   align-items: center;
-  background: ${(props) => (props.showEmpty ? "grey" : "#fff")};
+  background: ${(props) => (props.showEmpty ? "lightgrey" : "#fff")};
 `;
