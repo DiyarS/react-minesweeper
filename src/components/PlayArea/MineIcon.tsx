@@ -22,7 +22,15 @@ interface IProps {
 
 const MineIcon: React.FC<IProps> = ({ type = MineTypes.default }) => {
   const icon = MineIconsMappings[type];
-  return <img src={icon} alt="oops" width={iconSize} height={iconSize} />;
+  return (
+    <img
+      className="mine-cell"
+      src={icon}
+      alt="oops"
+      width={iconSize}
+      height={iconSize}
+    />
+  );
 };
 
 export default MineIcon;

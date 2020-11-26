@@ -10,6 +10,10 @@
   justify-content: center;
 }
 
+.ant-modal-close-x {
+  display: none;
+}
+
 .App-inner-container {
   display: inline-block;
 }

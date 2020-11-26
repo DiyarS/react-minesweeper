@@ -58,6 +58,7 @@ const GameConfigModal: React.FC<IProps> = ({ isConfigDefault, onSubmit }) => {
       okButtonProps={{ disabled: !rowsCount || !columnsCount || !minesCount }}
       okText="Start"
       maskClosable={false}
+      data-test="configs-modal-component"
     >
       <FormWrapper>
         <Form onValuesChange={onFormValuesChange}>

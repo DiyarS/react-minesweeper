@@ -6,7 +6,7 @@ import { AreaWrapper, Row, CellWrapper } from "./styles";
 import { MineTypes } from "./MineIcon";
 import { uuid } from "../../utils";
 
-interface IProps {
+export interface IProps {
   config: IGameConfig;
   isGameOver: boolean;
   setGameOver: (isGameOver: boolean) => void;
@@ -76,7 +76,7 @@ const PlayArea: React.FC<IProps> = ({
   });
 
   useEffect(() => {
-    document.addEventListener("contextmenu", (e) => handleCellFlag(e));
+    document.addEventListener("contextmenu", handleCellFlag);
   }, []);
 
   function setAllCoordinates(coordinates: CoordinatesDict) {
@@ -292,7 +292,12 @@ const PlayArea: React.FC<IProps> = ({
       case CellTypes.Empty:
         return "";
       case CellTypes.Mine:
-        return <MineIcon type={MineTypes.default} />;
+        return (
+          <MineIcon
+            data-test={`mine-cell-${cell.x}-${cell.y}`}
+            type={MineTypes.default}
+          />
+        );
       default:
         return null;
     }
@@ -313,19 +318,25 @@ const PlayArea: React.FC<IProps> = ({
     isGameOver ? null : handleCellClick(cell);
 
   return (
-    <AreaWrapper>
+    <AreaWrapper data-test="play-area-component">
       {rows.map((_, r) => {
         return (
-          <Row key={uuid()}>
+          <Row key={uuid()} data-test="play-area-row">
             {columns.map((_, c) => {
               const cellKey = parseCoordToKey({ x: c, y: r });
               const cell = allCoordinates[cellKey];
               if (!cell) return null;
 
               const coordAsKey = parseCoordToKey(cell);
+              const classIfBlown =
+                cell.type === CellTypes.Mine && !cell.flagged && cell.show
+                  ? "blown"
+                  : "";
               return (
                 <CellWrapper
                   key={coordAsKey}
+                  data-test="play-area-cell"
+                  className={classIfBlown}
                   onClick={() => cellClickHandler(cell)}
                   data-coord={coordAsKey}
                   showEmpty={

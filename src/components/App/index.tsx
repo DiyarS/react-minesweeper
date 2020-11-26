@@ -61,11 +61,11 @@ function App() {
           _setFlagsCount={setFlagsCount}
           setShowCongratz={setShowCongratz}
         />
-        <GameConfigModal
-          isConfigDefault={isConfigDefault}
-          onSubmit={setGameConfig}
-        />
       </Card>
+      <GameConfigModal
+        isConfigDefault={isConfigDefault}
+        onSubmit={setGameConfig}
+      />
     </div>
   );
 }
