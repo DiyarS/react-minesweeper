@@ -1,1 +1,2 @@
-export const iconSize = "40px";
+export const iconWidth = "50px";
+export const iconHeight = "40px";

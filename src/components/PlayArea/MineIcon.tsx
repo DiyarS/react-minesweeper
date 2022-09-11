@@ -2,7 +2,6 @@ import React from "react";
 import default_mine_icon from "../../assets/mine_default.png";
 import unarmed_mine_icon from "../../assets/mine_unarmed.png";
 import red_mine_icon from "../../assets/mine_red.png";
-import { iconSize } from "../../constants";
 
 export const MineTypes = {
   default: "0",
@@ -27,8 +26,8 @@ const MineIcon: React.FC<IProps> = ({ type = MineTypes.default }) => {
       className="mine-cell"
       src={icon}
       alt="oops"
-      width={iconSize}
-      height={iconSize}
+      width="40px"
+      height="40px"
     />
   );
 };

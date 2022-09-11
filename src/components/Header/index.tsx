@@ -3,7 +3,7 @@ import { Card } from "antd";
 import { FlagsCounter, ResetIcon } from "./styles";
 import sad_icon from "../../assets/sad.png";
 import happy_icon from "../../assets/happy.png";
-import { iconSize } from "../../constants";
+import { iconWidth, iconHeight } from "../../constants";
 
 export interface IProps {
   flagsCount: number;
@@ -20,8 +20,8 @@ const Header: React.FC<IProps> = ({ flagsCount, isWon, isGameOver, reset }) => {
         src={isGameOver && !isWon ? sad_icon : happy_icon}
         alt="smile"
         onClick={reset}
-        width={iconSize}
-        height={iconSize}
+        width={iconWidth}
+        height={iconHeight}
         data-test="smile-reset-icon"
       />
     </Card>

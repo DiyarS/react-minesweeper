@@ -1,6 +1,6 @@
 import React from "react";
 import flag from "../../assets/flag.png";
-import { iconSize } from "../../constants";
+import { iconWidth, iconHeight } from "../../constants";
 
 interface IProps {
   dataCoord: string;
@@ -11,8 +11,8 @@ const FlagIcon: React.FC<IProps> = ({ dataCoord }) => (
     src={flag}
     alt="flag"
     data-coord={dataCoord}
-    width={iconSize}
-    height={iconSize}
+    width={iconWidth}
+    height={iconHeight}
   />
 );
 
