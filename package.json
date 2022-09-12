@@ -1,7 +1,7 @@
 {
   "name": "react-minesweeper",
   "version": "0.1.0",
-  "homepage": "https://di.github.io/react-minesweeper",
+  "homepage": "https://diyars.github.io/react-minesweeper",
   "private": true,
   "dependencies": {
     "@testing-library/jest-dom": "^5.11.4",
